@@ -23,7 +23,7 @@ st.markdown("""
 original_link = "https://www.figma.com/design/1OxmuZEM5r2rdd9iOqHUdU/UX-Designer-Portfolio"
 
 # 2. Embed URL banayein
-embed_url = f"https://www.figma.com/embed?embed_host=share&url={original_link}""
+embed_url = f"https://www.figma.com/embed?embed_host=share&url={original_link}"
 
 
 # 4. Display Figma Design
