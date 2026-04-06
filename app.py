@@ -34,7 +34,7 @@ user_input = st.text_area("How are you feeling today?", "I feel very positive an
 
 if st.button("Analyze Mood"):
     # Yeh aapke folder se model load karega
-  classifier = pipeline("sentiment-analysis", model="kunal1323/MindTrack-AI1")
+    classifier = pipeline("sentiment-analysis", model="kunal1323/MindTrack-AI1")
     result = classifier(user_input)
     
     label = result[0]['label']
