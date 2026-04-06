@@ -19,8 +19,12 @@ st.markdown("""
 
 # 3. Figma Design Link (Embed logic)
 # Note: Use your actual design link here
-original_link = "https://idea-veggie-98907730.figma.site/"
-embed_url = f"https://www.figma.com/embed?embed_host=share&url={original_link}"
+# 1. Direct design link use karein
+original_link = "https://www.figma.com/design/1OxmuZEM5r2rdd9iOqHUdU/UX-Designer-Portfolio"
+
+# 2. Embed URL banayein
+embed_url = f"https://www.figma.com/embed?embed_host=share&url={original_link}""
+
 
 # 4. Display Figma Design
 components.html(
