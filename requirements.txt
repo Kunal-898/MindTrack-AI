@@ -1,6 +1,0 @@
-streamlit
-flask
-transformers
-torch
-pandas
-numpy
