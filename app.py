@@ -5,7 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-HTML_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "mindtrack-single-file.html")
+HTML_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui.html")
 
 with open(HTML_FILE, "r", encoding="utf-8") as f:
     original_html = f.read()
