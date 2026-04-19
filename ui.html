@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MINDTRACK - Mental Health AI Application</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Recharts CDN -->
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+        }
+        
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        
+        .animate-float {
+            animation: float 8s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse-slow 10s ease-in-out infinite;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            transition: width 0.3s ease;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // ============= ICONS (Simple SVG Icons) =============
+        const BrainIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+            </svg>
+        );
+        
+        const SparklesIcon = () => (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
+            </svg>
+        );
+        
+        const HomeIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+        );
+        
+        const BookIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+        );
+        
+        const ChartIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+        );
+        
+        const SettingsIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v6m0 6v6m-6-6h6m6 0h-6"/>
+            </svg>
+        );
+        
+        const LogoutIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+        );
+        
+        const SmileIcon = () => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                <line x1="15" y1="9" x2="15.01" y2="9"/>
+            </svg>
+        );
+        
+        // ============= PROGRESS BAR COMPONENT =============
+        const ProgressBar = ({ value }) => (
+            <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${value}%` }}></div>
+            </div>
+        );
+        
+        // ============= MOOD TRACKER COMPONENT =============
+        const MoodTracker = () => {
+            const moodData = [
+                { emotion: "Joy", percentage: 65, color: "#60A5FA" },
+                { emotion: "Calm", percentage: 45, color: "#34D399" },
+                { emotion: "Neutral", percentage: 30, color: "#FBBF24" },
+                { emotion: "Stress", percentage: 20, color: "#FB923C" },
+                { emotion: "Anxiety", percentage: 15, color: "#EF4444" },
+            ];
+            
+            return (
+                <div className="glass rounded-3xl shadow-lg p-6">
+                    <h3 className="text-lg mb-6 text-gray-800 font-medium">Live Mood Tracker</h3>
+                    
+                    {/* Circular Gauge */}
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="relative w-40 h-40 mb-4">
+                            <svg className="transform -rotate-90 w-40 h-40">
+                                <circle cx="80" cy="80" r="70" stroke="#E0E7FF" strokeWidth="12" fill="none"/>
+                                <circle cx="80" cy="80" r="70" stroke="url(#gradient)" strokeWidth="12" fill="none"
+                                    strokeDasharray={`${2 * Math.PI * 70}`}
+                                    strokeDashoffset={`${2 * Math.PI * 70 * (1 - 0.65)}`}
+                                    strokeLinecap="round"/>
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#60A5FA"/>
+                                        <stop offset="100%" stopColor="#34D399"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <SmileIcon />
+                                <span className="text-2xl font-semibold text-gray-800">65%</span>
+                                <span className="text-xs text-gray-500">Joy</span>
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-600 text-center">Your dominant mood today</p>
+                    </div>
+                    
+                    {/* Emotion Breakdown */}
+                    <div className="space-y-4">
+                        <h4 className="text-sm text-gray-700 mb-3 font-medium">Emotion Breakdown</h4>
+                        {moodData.map((mood, index) => (
+                            <div key={index} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700">{mood.emotion}</span>
+                                    <span className="text-sm text-gray-600">{mood.percentage}%</span>
+                                </div>
+                                <ProgressBar value={mood.percentage} />
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Summary */}
+                    <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl">
+                        <p className="text-xs text-gray-600 mb-1">Today's Summary</p>
+                        <p className="text-sm text-gray-800">You're feeling mostly positive! Keep up the good vibes. 🌟</p>
+                    </div>
+                </div>
+            );
+        };
+        
+        // ============= WELLNESS TREND COMPONENT =============
+        const WellnessTrend = () => {
+            const data = [
+                { day: "Mon", mood: 65 },
+                { day: "Tue", mood: 72 },
+                { day: "Wed", mood: 58 },
+                { day: "Thu", mood: 68 },
+                { day: "Fri", mood: 80 },
+                { day: "Sat", mood: 85 },
+                { day: "Sun", mood: 75 },
+            ];
+            
+            return (
+                <div className="glass rounded-3xl shadow-lg p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg text-gray-800 font-medium">Wellness Trend</h3>
+                            <p className="text-sm text-gray-500">Last 7 days</p>
+                        </div>
+                    </div>
+                    
+                    {/* Simple Line Chart */}
+                    <div className="h-64 flex items-end justify-between gap-4 px-4">
+                        {data.map((item, index) => (
+                            <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                                <div className="w-full bg-gradient-to-t from-blue-400 to-green-400 rounded-t-lg transition-all duration-500"
+                                    style={{ height: `${item.mood}%` }}></div>
+                                <span className="text-xs text-gray-600">{item.day}</span>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mt-6">
+                        <div className="text-center p-3 bg-blue-50 rounded-xl">
+                            <p className="text-xs text-gray-600 mb-1">Avg Mood</p>
+                            <p className="text-xl font-semibold text-blue-600">72%</p>
+                        </div>
+                        <div className="text-center p-3 bg-orange-50 rounded-xl">
+                            <p className="text-xs text-gray-600 mb-1">Avg Stress</p>
+                            <p className="text-xl font-semibold text-orange-600">26%</p>
+                        </div>
+                        <div className="text-center p-3 bg-green-50 rounded-xl">
+                            <p className="text-xs text-gray-600 mb-1">Trend</p>
+                            <p className="text-xl font-semibold text-green-600">↗ +8%</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // ============= EMOTION MODAL COMPONENT =============
+        const EmotionCard = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            
+            const emotions = [
+                { emotion: "Joy", percentage: 80, color: "#60A5FA" },
+                { emotion: "Hope", percentage: 65, color: "#34D399" },
+                { emotion: "Gratitude", percentage: 50, color: "#FBBF24" },
+                { emotion: "Anxiety", percentage: 10, color: "#F87171" },
+            ];
+            
+            return (
+                <>
+                    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40" onClick={onClose}></div>
+                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg z-50 p-4">
+                        <div className="glass rounded-3xl shadow-2xl p-8 relative">
+                            <button onClick={onClose} className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full">
+                                ✕
+                            </button>
+                            
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-3 bg-gradient-to-br from-blue-400 to-green-400 rounded-2xl text-white">
+                                    <SparklesIcon />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl text-gray-800 font-medium">AI Emotion Analysis</h3>
+                                    <p className="text-sm text-gray-500">Based on your journal entry</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-4 mb-6">
+                                <h4 className="text-sm text-gray-700 font-medium">Detected Emotions</h4>
+                                {emotions.map((emotion, index) => (
+                                    <div key={index} className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-700">{emotion.emotion}</span>
+                                            <span className="text-sm font-semibold" style={{ color: emotion.color }}>
+                                                {emotion.percentage}%
+                                            </span>
+                                        </div>
+                                        <ProgressBar value={emotion.percentage} />
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-5">
+                                <h4 className="text-sm text-gray-800 mb-2 font-medium">AI Suggestions</h4>
+                                <ul className="space-y-2 text-sm text-gray-700">
+                                    <li>• You're showing great emotional balance!</li>
+                                    <li>• Try a 5-minute breathing exercise to reduce anxiety.</li>
+                                    <li>• Your gratitude levels are excellent.</li>
+                                </ul>
+                            </div>
+                            
+                            <div className="flex gap-3 mt-6">
+                                <button className="flex-1 bg-gradient-to-r from-blue-500 to-green-500 text-white py-3 rounded-xl hover:shadow-lg">
+                                    Save to Analytics
+                                </button>
+                                <button onClick={onClose} className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200">
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            );
+        };
+        
+        // ============= LOGIN PAGE =============
+        const LoginPage = ({ onLogin }) => {
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onLogin();
+            };
+            
+            return (
+                <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-50 via-green-50 to-blue-100">
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 opacity-40 rounded-full blur-3xl animate-float"></div>
+                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-200 opacity-40 rounded-full blur-3xl animate-pulse-slow"></div>
+                    
+                    <div className="relative z-10 w-full max-w-md mx-4">
+                        <div className="glass rounded-3xl shadow-2xl p-8">
+                            <div className="text-center mb-8">
+                                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-400 to-green-400 rounded-2xl mb-4 shadow-lg text-white">
+                                    <BrainIcon />
+                                </div>
+                                <h1 className="text-3xl font-semibold text-gray-800 mb-2">MINDTRACK</h1>
+                                <p className="text-gray-600 flex items-center justify-center gap-2">
+                                    <SparklesIcon />
+                                    Your Mental Wellness Companion
+                                </p>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                <div>
+                                    <label className="block text-sm text-gray-700 mb-2">Email Address</label>
+                                    <input
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-white bg-opacity-80 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300 outline-none"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm text-gray-700 mb-2">Password</label>
+                                    <input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full bg-white bg-opacity-80 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-300 outline-none"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="flex items-center justify-between text-sm">
+                                    <label className="flex items-center text-gray-600">
+                                        <input type="checkbox" className="mr-2 rounded" />
+                                        Remember me
+                                    </label>
+                                    <a href="#" className="text-blue-500 hover:text-blue-600">Forgot password?</a>
+                                </div>
+                                
+                                <button type="submit" className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-3 rounded-xl shadow-lg">
+                                    Sign In
+                                </button>
+                            </form>
+                            
+                            <p className="text-center text-sm text-gray-600 mt-6">
+                                Don't have an account? <a href="#" className="text-blue-500 hover:text-blue-600">Sign up for free</a>
+                            </p>
+                        </div>
+                        
+                        <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                Secure & Private
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                AI Powered
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // ============= DASHBOARD PAGE =============
+        const DashboardPage = ({ onLogout, onNavigate }) => {
+            const [journalText, setJournalText] = useState('');
+            const [showEmotionCard, setShowEmotionCard] = useState(false);
+            const [bgGradient, setBgGradient] = useState('from-blue-50 via-white to-green-50');
+            
+            useEffect(() => {
+                const text = journalText.toLowerCase();
+                if (text.includes('happy') || text.includes('joy') || text.includes('great')) {
+                    setBgGradient('from-yellow-50 via-white to-orange-50');
+                } else if (text.includes('sad') || text.includes('anxious') || text.includes('stress')) {
+                    setBgGradient('from-gray-50 via-white to-blue-50');
+                } else if (text.includes('calm') || text.includes('peace') || text.includes('relax')) {
+                    setBgGradient('from-green-50 via-white to-teal-50');
+                } else {
+                    setBgGradient('from-blue-50 via-white to-green-50');
+                }
+            }, [journalText]);
+            
+            return (
+                <div className={`min-h-screen bg-gradient-to-br ${bgGradient} transition-all duration-1000`}>
+                    <div className="flex h-screen">
+                        {/* Sidebar */}
+                        <div className="w-20 glass border-r border-white border-opacity-50 flex flex-col items-center py-8 shadow-lg">
+                            <div className="mb-12">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                                    <BrainIcon />
+                                </div>
+                            </div>
+                            
+                            <nav className="flex-1 flex flex-col gap-6">
+                                <button onClick={() => onNavigate('dashboard')} className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-green-500 shadow-lg text-white">
+                                    <HomeIcon />
+                                </button>
+                                <button onClick={() => onNavigate('analytics')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <ChartIcon />
+                                </button>
+                                <button onClick={() => onNavigate('settings')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <SettingsIcon />
+                                </button>
+                            </nav>
+                            
+                            <button onClick={onLogout} className="p-4 rounded-2xl hover:bg-red-50 text-gray-600">
+                                <LogoutIcon />
+                            </button>
+                        </div>
+                        
+                        {/* Main Content */}
+                        <div className="flex-1 flex overflow-hidden">
+                            <div className="flex-1 p-8 overflow-y-auto">
+                                <div className="mb-8">
+                                    <h1 className="text-3xl text-gray-800 mb-2 font-medium">Welcome back! 👋</h1>
+                                    <p className="text-gray-600">How are you feeling today?</p>
+                                </div>
+                                
+                                <div className="glass rounded-3xl shadow-lg p-8 mb-8">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div>
+                                            <h2 className="text-xl text-gray-800 font-medium">Daily Journaling</h2>
+                                            <p className="text-sm text-gray-500">Express your thoughts and feelings</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                            <SparklesIcon />
+                                            <span>AI-Powered Analysis</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <textarea
+                                        placeholder="Start writing about your day... How do you feel? What's on your mind?"
+                                        value={journalText}
+                                        onChange={(e) => setJournalText(e.target.value)}
+                                        className="w-full min-h-96 bg-white bg-opacity-80 border border-gray-200 rounded-2xl p-6 text-base resize-none focus:ring-2 focus:ring-blue-300 outline-none"
+                                    />
+                                    
+                                    <div className="flex items-center justify-between mt-6">
+                                        <div className="text-sm text-gray-500">
+                                            {journalText.length} characters • {journalText.split(/\s+/).filter(Boolean).length} words
+                                        </div>
+                                        <button
+                                            onClick={() => setShowEmotionCard(true)}
+                                            disabled={journalText.length < 10}
+                                            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-3 rounded-xl shadow-lg disabled:opacity-50 flex items-center gap-2"
+                                        >
+                                            <SparklesIcon />
+                                            Analyze Emotion
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <WellnessTrend />
+                            </div>
+                            
+                            {/* Right Sidebar */}
+                            <div className="w-96 p-8 overflow-y-auto">
+                                <MoodTracker />
+                                
+                                <div className="mt-8 glass rounded-3xl shadow-lg p-6">
+                                    <p className="text-xs text-gray-500 mb-2">Quote of the Day</p>
+                                    <p className="text-sm text-gray-800 italic mb-3">
+                                        "The greatest glory in living lies not in never falling, but in rising every time we fall."
+                                    </p>
+                                    <p className="text-xs text-gray-500">— Nelson Mandela</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <EmotionCard isOpen={showEmotionCard} onClose={() => setShowEmotionCard(false)} />
+                </div>
+            );
+        };
+        
+        // ============= ANALYTICS PAGE =============
+        const AnalyticsPage = ({ onLogout, onNavigate }) => {
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+                    <div className="flex h-screen">
+                        {/* Sidebar */}
+                        <div className="w-20 glass border-r border-white border-opacity-50 flex flex-col items-center py-8 shadow-lg">
+                            <div className="mb-12">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                                    <BrainIcon />
+                                </div>
+                            </div>
+                            
+                            <nav className="flex-1 flex flex-col gap-6">
+                                <button onClick={() => onNavigate('dashboard')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <HomeIcon />
+                                </button>
+                                <button onClick={() => onNavigate('analytics')} className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-green-500 shadow-lg text-white">
+                                    <ChartIcon />
+                                </button>
+                                <button onClick={() => onNavigate('settings')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <SettingsIcon />
+                                </button>
+                            </nav>
+                            
+                            <button onClick={onLogout} className="p-4 rounded-2xl hover:bg-red-50 text-gray-600">
+                                <LogoutIcon />
+                            </button>
+                        </div>
+                        
+                        {/* Main Content */}
+                        <div className="flex-1 p-8 overflow-y-auto">
+                            <div className="mb-8">
+                                <h1 className="text-3xl text-gray-800 mb-2 font-medium">Analytics Dashboard</h1>
+                                <p className="text-gray-600">Insights into your mental wellness journey</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-4 gap-6 mb-8">
+                                <div className="glass rounded-2xl shadow-lg p-6">
+                                    <h3 className="text-sm text-gray-600 mb-3">Total Entries</h3>
+                                    <p className="text-3xl font-semibold text-gray-800">127</p>
+                                    <p className="text-xs text-green-600 mt-2">+12 this month</p>
+                                </div>
+                                <div className="glass rounded-2xl shadow-lg p-6">
+                                    <h3 className="text-sm text-gray-600 mb-3">Avg Mood</h3>
+                                    <p className="text-3xl font-semibold text-gray-800">72%</p>
+                                    <p className="text-xs text-green-600 mt-2">↗ +8% from last week</p>
+                                </div>
+                                <div className="glass rounded-2xl shadow-lg p-6">
+                                    <h3 className="text-sm text-gray-600 mb-3">Streak</h3>
+                                    <p className="text-3xl font-semibold text-gray-800">14</p>
+                                    <p className="text-xs text-gray-600 mt-2">days in a row</p>
+                                </div>
+                                <div className="glass rounded-2xl shadow-lg p-6">
+                                    <h3 className="text-sm text-gray-600 mb-3">Top Emotion</h3>
+                                    <p className="text-3xl font-semibold text-gray-800">Joy</p>
+                                    <p className="text-xs text-gray-600 mt-2">Most frequent</p>
+                                </div>
+                            </div>
+                            
+                            <div className="glass rounded-3xl shadow-lg p-8">
+                                <h2 className="text-xl text-gray-800 mb-6 font-medium">Mood Calendar</h2>
+                                <div className="grid grid-cols-7 gap-3">
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                                        <div key={day} className="text-center text-xs text-gray-500 mb-2">{day}</div>
+                                    ))}
+                                    {Array.from({ length: 30 }).map((_, i) => {
+                                        const colors = ['bg-green-400', 'bg-yellow-400', 'bg-red-400'];
+                                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                                        return (
+                                            <div key={i} className={`aspect-square rounded-lg ${randomColor} flex items-center justify-center text-xs text-white font-medium cursor-pointer hover:scale-110 transition-transform`}>
+                                                {i + 1}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // ============= SETTINGS PAGE =============
+        const SettingsPage = ({ onLogout, onNavigate }) => {
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+                    <div className="flex h-screen">
+                        {/* Sidebar */}
+                        <div className="w-20 glass border-r border-white border-opacity-50 flex flex-col items-center py-8 shadow-lg">
+                            <div className="mb-12">
+                                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-2xl flex items-center justify-center shadow-lg text-white">
+                                    <BrainIcon />
+                                </div>
+                            </div>
+                            
+                            <nav className="flex-1 flex flex-col gap-6">
+                                <button onClick={() => onNavigate('dashboard')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <HomeIcon />
+                                </button>
+                                <button onClick={() => onNavigate('analytics')} className="p-4 rounded-2xl hover:bg-white hover:bg-opacity-50 text-gray-600">
+                                    <ChartIcon />
+                                </button>
+                                <button onClick={() => onNavigate('settings')} className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-green-500 shadow-lg text-white">
+                                    <SettingsIcon />
+                                </button>
+                            </nav>
+                            
+                            <button onClick={onLogout} className="p-4 rounded-2xl hover:bg-red-50 text-gray-600">
+                                <LogoutIcon />
+                            </button>
+                        </div>
+                        
+                        {/* Main Content */}
+                        <div className="flex-1 p-8 overflow-y-auto">
+                            <div className="mb-8">
+                                <h1 className="text-3xl text-gray-800 mb-2 font-medium">Settings</h1>
+                                <p className="text-gray-600">Manage your account and preferences</p>
+                            </div>
+                            
+                            <div className="max-w-4xl">
+                                <div className="glass rounded-3xl shadow-lg p-8 mb-6">
+                                    <h2 className="text-xl text-gray-800 mb-6 font-medium">Profile Information</h2>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm text-gray-700 mb-2">Full Name</label>
+                                            <input type="text" defaultValue="John Doe" className="w-full bg-white bg-opacity-80 border border-gray-200 rounded-xl px-4 py-3" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm text-gray-700 mb-2">Email</label>
+                                            <input type="email" defaultValue="john@example.com" className="w-full bg-white bg-opacity-80 border border-gray-200 rounded-xl px-4 py-3" />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end mt-6">
+                                        <button className="bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-3 rounded-xl">
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="glass rounded-3xl shadow-lg p-8">
+                                    <h2 className="text-xl text-gray-800 mb-6 font-medium">Notifications</h2>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="text-sm text-gray-800">Push Notifications</h4>
+                                                <p className="text-xs text-gray-500">Receive notifications on your device</p>
+                                            </div>
+                                            <input type="checkbox" className="w-5 h-5" defaultChecked />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h4 className="text-sm text-gray-800">Daily Reminder</h4>
+                                                <p className="text-xs text-gray-500">Get reminded to write in your journal</p>
+                                            </div>
+                                            <input type="checkbox" className="w-5 h-5" defaultChecked />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // ============= MAIN APP =============
+        const App = () => {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [currentPage, setCurrentPage] = useState('dashboard');
+            
+            if (!isLoggedIn) {
+                return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+            }
+            
+            const handleLogout = () => {
+                setIsLoggedIn(false);
+                setCurrentPage('dashboard');
+            };
+            
+            if (currentPage === 'analytics') {
+                return <AnalyticsPage onLogout={handleLogout} onNavigate={setCurrentPage} />;
+            }
+            
+            if (currentPage === 'settings') {
+                return <SettingsPage onLogout={handleLogout} onNavigate={setCurrentPage} />;
+            }
+            
+            return <DashboardPage onLogout={handleLogout} onNavigate={setCurrentPage} />;
+        };
+        
+        // ============= RENDER APP =============
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
