@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindTrack — AI Mental Wellness</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --bg: #0a0d14;
+            --surface: #111420;
+            --surface2: #171c2e;
+            --border: rgba(255, 255, 255, 0.07);
+            --accent: #7c6dfa;
+            --accent2: #4fc3f7;
+            --accent3: #f06292;
+            --text: #e8eaf6;
+            --text2: #8890b0;
+            --joy: #66bb6a;
+            --love: #f06292;
+            --sadness: #5c7bff;
+            --anger: #ef5350;
+            --fear: #ffa726;
+            --surprise: #ab47bc;
+            --radius: 16px;
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(124, 109, 250, 0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 100%, rgba(79, 195, 247, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* ── AUTH ─────────────────────────────────────────────────────────── */
+        
+        #authWrap {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .auth-box {
+            width: 100%;
+            max-width: 420px;
+            background: var(--surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+        }
+        
+        .auth-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .auth-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .auth-logo h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.6rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .auth-logo span {
+            color: var(--accent);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 1.75rem;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .auth-tab.active {
+            background: var(--surface2);
+            color: var(--text);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .field {
+            margin-bottom: 1.2rem;
+        }
+        
+        .field label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text2);
+            margin-bottom: 0.45rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        
+        .field input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: border 0.2s;
+            outline: none;
+        }
+        
+        .field input:focus {
+            border-color: var(--accent);
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, var(--accent), #9c8ffc);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+        
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(124, 109, 250, 0.35);
+        }
+        
+        .auth-hint {
+            margin-top: 1.2rem;
+            background: rgba(124, 109, 250, 0.1);
+            border: 1px solid rgba(124, 109, 250, 0.2);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        
+        .auth-hint strong {
+            color: var(--accent);
+        }
+        
+        .msg {
+            padding: 0.65rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+            display: none;
+        }
+        
+        .msg.error {
+            background: rgba(239, 83, 80, 0.15);
+            border: 1px solid rgba(239, 83, 80, 0.3);
+            color: #ef9a9a;
+            display: block;
+        }
+        
+        .msg.success {
+            background: rgba(102, 187, 106, 0.15);
+            border: 1px solid rgba(102, 187, 106, 0.3);
+            color: #a5d6a7;
+            display: block;
+        }
+        /* ── APP SHELL ────────────────────────────────────────────────────── */
+        
+        #appWrap {
+            display: none;
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+        }
+        
+        .shell {
+            display: flex;
+            min-height: 100vh;
+        }
+        /* ── SIDEBAR ──────────────────────────────────────────────────────── */
+        
+        .sidebar {
+            width: 240px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .logo h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.2rem;
+        }
+        
+        .nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 0.9rem;
+            border: none;
+            background: transparent;
+            color: var(--text2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+            transition: all 0.15s;
+        }
+        
+        .nav-btn:hover {
+            background: var(--glass);
+            color: var(--text);
+        }
+        
+        .nav-btn.active {
+            background: rgba(124, 109, 250, 0.15);
+            color: var(--accent);
+        }
+        
+        .nav-btn .icon {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .sidebar-user {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 0.6rem;
+        }
+        
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--accent), var(--accent3));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .user-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 0.55rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text2);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .logout-btn:hover {
+            border-color: var(--accent3);
+            color: var(--accent3);
+        }
+        /* ── MAIN ─────────────────────────────────────────────────────────── */
+        
+        .main {
+            flex: 1;
+            padding: 2rem 2.5rem;
+            overflow-y: auto;
+            max-width: 1100px;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .page-header p {
+            color: var(--text2);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+        /* ── CARDS ────────────────────────────────────────────────────────── */
+        
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text2);
+            margin-bottom: 1rem;
+        }
+        
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .grid-3-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        /* ── METRIC CARDS ─────────────────────────────────────────────────── */
+        
+        .metric {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        
+        .metric:hover {
+            border-color: rgba(124, 109, 250, 0.3);
+        }
+        
+        .metric::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            opacity: 0.07;
+        }
+        
+        .metric-label {
+            font-size: 0.78rem;
+            color: var(--text2);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        
+        .metric-sub {
+            font-size: 0.8rem;
+            color: var(--text2);
+        }
+        
+        .metric-icon {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            font-size: 1.4rem;
+            opacity: 0.5;
+        }
+        /* ── WELLNESS RING ────────────────────────────────────────────────── */
+        
+        .wellness-ring-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 0;
+        }
+        
+        .ring-svg {
+            width: 140px;
+            height: 140px;
+        }
+        
+        .ring-bg {
+            fill: none;
+            stroke: var(--surface2);
+            stroke-width: 12;
+        }
+        
+        .ring-fill {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 0.8s cubic-bezier(.4, 0, .2, 1);
+        }
+        
+        .ring-label {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.6rem;
+            fill: var(--text);
+        }
+        
+        .ring-sub {
+            font-size: 0.7rem;
+            fill: var(--text2);
+        }
+        
+        .trend-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+        
+        .trend-improving {
+            background: rgba(102, 187, 106, 0.15);
+            color: #81c784;
+        }
+        
+        .trend-declining {
+            background: rgba(239, 83, 80, 0.15);
+            color: #ef9a9a;
+        }
+        
+        .trend-stable {
+            background: rgba(138, 170, 255, 0.1);
+            color: #8aabff;
+        }
+        /* ── JOURNAL ──────────────────────────────────────────────────────── */
+        
+        .journal-textarea {
+            width: 100%;
+            min-height: 160px;
+            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.65;
+            resize: vertical;
+            outline: none;
+            transition: border 0.2s;
+        }
+        
+        .journal-textarea:focus {
+            border-color: var(--accent);
+        }
+        
+        .journal-textarea::placeholder {
+            color: var(--text2);
+        }
+        
+        .save-btn {
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent), #9c8ffc);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .save-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(124, 109, 250, 0.3);
+        }
+        
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .live-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 220px;
+            text-align: center;
+        }
+        
+        .live-emotion {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .live-bar-wrap {
+            width: 100%;
+            background: var(--bg);
+            border-radius: 20px;
+            height: 8px;
+            margin: 0.75rem 0;
+            overflow: hidden;
+        }
+        
+        .live-bar {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.5s ease, background 0.5s;
+        }
+        
+        .live-hint {
+            font-size: 0.82rem;
+            color: var(--text2);
+        }
+        
+        .model-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .model-base {
+            background: rgba(255, 167, 38, 0.15);
+            color: #ffa726;
+            border: 1px solid rgba(255, 167, 38, 0.25);
+        }
+        
+        .model-adapted {
+            background: rgba(102, 187, 106, 0.15);
+            color: #66bb6a;
+            border: 1px solid rgba(102, 187, 106, 0.25);
+        }
+        /* ── ENTRY LIST ───────────────────────────────────────────────────── */
+        
+        .entry-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.15s;
+        }
+        
+        .entry-card:hover {
+            border-color: rgba(124, 109, 250, 0.2);
+        }
+        
+        .entry-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .entry-date {
+            font-size: 0.78rem;
+            color: var(--text2);
+        }
+        
+        .entry-text {
+            font-size: 0.9rem;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .emo-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        
+        .delete-btn:hover {
+            color: var(--accent3);
+            background: rgba(240, 98, 146, 0.1);
+        }
+        /* ── ANOMALY ALERT ────────────────────────────────────────────────── */
+        
+        .anomaly-alert {
+            background: rgba(239, 83, 80, 0.08);
+            border: 1px solid rgba(239, 83, 80, 0.25);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .anomaly-alert .icon {
+            font-size: 1.5rem;
+        }
+        
+        .anomaly-alert p {
+            font-size: 0.85rem;
+            color: #ef9a9a;
+        }
+        /* ── CANVAS ───────────────────────────────────────────────────────── */
+        
+        canvas {
+            max-height: 280px;
+        }
+        /* ── TIPS ─────────────────────────────────────────────────────────── */
+        
+        .tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text2);
+        }
+        
+        .tip-item:last-child {
+            border: none;
+        }
+        
+        .tip-item .tip-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        /* ── ADAPT SECTION ────────────────────────────────────────────────── */
+        
+        .adapt-log {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #81c784;
+            min-height: 80px;
+            max-height: 160px;
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+        
+        .adapt-log p {
+            margin-bottom: 0.25rem;
+        }
+        /* ── SETTINGS ─────────────────────────────────────────────────────── */
+        
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.65rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+        
+        .profile-row:last-child {
+            border: none;
+        }
+        
+        .profile-row .label {
+            color: var(--text2);
+        }
+        
+        .profile-row .val {
+            font-weight: 600;
+        }
+        
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.55rem;
+            font-size: 0.8rem;
+        }
+        
+        .score-row .score-label {
+            width: 88px;
+            white-space: nowrap;
+            text-align: left;
+            color: var(--text2);
+            font-weight: 500;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .score-row .score-track {
+            flex: 1;
+            height: 8px;
+            background: var(--surface2);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .score-row .score-fill {
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.4s ease;
+        }
+        
+        .score-row .score-pct {
+            width: 34px;
+            font-size: 0.75rem;
+            color: var(--text2);
+            text-align: right;
+            flex-shrink: 0;
+        }
+        
+        .score-row.top-emo .score-label {
+            color: var(--text);
+            font-weight: 700;
+        }
+        
+        .score-row.top-emo .score-pct {
+            color: var(--text);
+            font-weight: 700;
+        }
+        
+        .live-polarity {
+            font-size: 0.78rem;
+            color: var(--text2);
+            margin-top: 0.6rem;
+            text-align: center;
+        }
+        
+        .event-chip {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.6rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text2);
+            transition: all 0.15s;
+            user-select: none;
+        }
+        
+        .event-chip input[type=checkbox] {
+            display: none;
+        }
+        
+        .event-chip.checked {
+            background: rgba(124, 109, 250, 0.15);
+            border-color: rgba(124, 109, 250, 0.4);
+            color: var(--accent);
+        }
+        
+        .event-chip .chip-icon {
+            font-size: 0.95rem;
+        }
+        /* ── UTIL ─────────────────────────────────────────────────────────── */
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .mt-1 {
+            margin-top: 0.75rem;
+        }
+        
+        .mt-2 {
+            margin-top: 1.5rem;
+        }
+        
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text2);
+            font-size: 0.9rem;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.4rem;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* ── EMOTION COLORS ───────────────────────────────────────────────── */
+        
+        .e-joy {
+            background: rgba(102, 187, 106, 0.15);
+            color: #66bb6a;
+        }
+        
+        .e-love {
+            background: rgba(240, 98, 146, 0.15);
+            color: #f06292;
+        }
+        
+        .e-sadness {
+            background: rgba(92, 123, 255, 0.15);
+            color: #7986cb;
+        }
+        
+        .e-anger {
+            background: rgba(239, 83, 80, 0.15);
+            color: #ef5350;
+        }
+        
+        .e-fear {
+            background: rgba(255, 167, 38, 0.15);
+            color: #ffa726;
+        }
+        
+        .e-surprise {
+            background: rgba(171, 71, 188, 0.15);
+            color: #ab47bc;
+        }
+        
+        @media(max-width:768px) {
+            .shell {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .main {
+                padding: 1rem;
+            }
+            .grid-4,
+            .grid-2,
+            .grid-3-1 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══ AUTH ══════════════════════════════════════════════════════════ -->
+    <div id="authWrap">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">🧠</div>
+                <h1>Mind<span>Track</span></h1>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Create Account</button>
+            </div>
+            <div id="loginTab">
+                <div class="field"><label>Username or Email</label><input type="text" id="loginUser" placeholder="username or email address"></div>
+                <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+                <button class="btn-primary" onclick="doLogin()">Sign In</button>
+                <div class="auth-hint">Demo → <strong>demo</strong> / <strong>demo123</strong></div>
+            </div>
+            <div id="signupTab" class="hidden">
+                <div class="field"><label>Username</label><input type="text" id="suUser" placeholder="choose a username"></div>
+                <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"></div>
+                <div class="field"><label>Password</label><input type="password" id="suPass" placeholder="min 6 characters"></div>
+                <div class="field"><label>Confirm Password</label><input type="password" id="suConfirm" placeholder="••••••••"></div>
+                <button class="btn-primary" onclick="doSignup()">Create Account</button>
+            </div>
+            <div id="authMsg" class="msg"></div>
+        </div>
+    </div>
+
+    <!-- ══ APP ════════════════════════════════════════════════════════════ -->
+    <div id="appWrap">
+        <div class="shell">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="logo-icon">🧠</div>
+                    <h2>MindTrack</h2>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" onclick="goTo('home',this)"><span class="icon">🏠</span>Dashboard</button>
+                    <button class="nav-btn" onclick="goTo('journal',this)"><span class="icon">📔</span>Journal</button>
+                    <button class="nav-btn" onclick="goTo('analytics',this)"><span class="icon">📊</span>Analytics</button>
+                    <button class="nav-btn" onclick="goTo('settings',this)"><span class="icon">⚙️</span>Settings</button>
+                </nav>
+                <div class="sidebar-user">
+                    <div class="user-chip">
+                        <div class="user-avatar" id="userAvatar">U</div>
+                        <div class="user-name" id="userNameLabel">User</div>
+                    </div>
+                    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+                </div>
+            </div>
+
+            <div class="main">
+
+                <!-- HOME -->
+                <div id="homePage" class="page active">
+                    <div class="page-header">
+                        <h1>Dashboard</h1>
+                        <p id="homeSubtitle">Your mental wellness overview</p>
+                    </div>
+                    <div id="anomalyBanner" class="anomaly-alert hidden">
+                        <span class="icon">⚠️</span>
+                        <p>Today's entry shows an unusual emotional shift. Consider reaching out to someone you trust.</p>
+                    </div>
+                    <div class="grid-4" id="metricsGrid">
+                        <div class="metric">
+                            <div class="metric-label">Entries</div>
+                            <div class="metric-value" id="mTotal">—</div>
+                            <div class="metric-icon">📝</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg Polarity</div>
+                            <div class="metric-value" id="mAvg">—</div>
+                            <div class="metric-icon">📈</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Top Emotion</div>
+                            <div class="metric-value" id="mTop" style="font-size:1.2rem;">—</div>
+                            <div class="metric-icon">🎭</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Model</div>
+                            <div class="metric-value" id="mModel" style="font-size:1rem;">—</div>
+                            <div class="metric-icon">🤖</div>
+                        </div>
+                    </div>
+                    <div class="grid-3-1">
+                        <div class="card">
+                            <div class="card-title">Mood Trend — last 30 entries</div>
+                            <canvas id="moodChart"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Wellness Index (EWMA)</div>
+                            <div class="wellness-ring-wrap">
+                                <svg class="ring-svg" viewBox="0 0 140 140">
+                <circle class="ring-bg" cx="70" cy="70" r="54"/>
+                <circle class="ring-fill" id="ringFill" cx="70" cy="70" r="54" stroke="var(--accent)" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+                <text class="ring-label" x="70" y="67" text-anchor="middle" dominant-baseline="middle" id="ringVal">—</text>
+                <text class="ring-sub" x="70" y="87" text-anchor="middle" id="ringPct">wellness</text>
+              </svg>
+                                <div id="trendBadge" class="trend-badge trend-stable">— stable</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Wellness Tips</div>
+                        <div id="tipsBox"></div>
+                    </div>
+                </div>
+
+                <!-- JOURNAL -->
+                <div id="journalPage" class="page">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Journal</h1>
+                            <p>Write freely — AI will analyse your emotion</p>
+                        </div>
+                        <span id="journalModelBadge" class="model-badge model-base">base model</span>
+                    </div>
+                    <div class="grid-3-1">
+                        <div class="card">
+                            <div class="card-title">New Entry</div>
+                            <textarea class="journal-textarea" id="journalText" placeholder="What's on your mind today..."></textarea>
+                            <div style="margin-top:1rem;">
+                                <div style="font-size:0.78rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--text2);margin-bottom:0.6rem;">Real-life Events (optional)</div>
+                                <div id="eventsGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.4rem 0.75rem;"></div>
+                            </div>
+                            <button class="save-btn" id="saveBtn" onclick="saveEntry()">Save Entry</button>
+                            <div id="journalMsg" class="msg mt-1"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Live Analysis</div>
+                            <div class="live-box" id="liveBox">
+                                <div class="live-emotion" id="liveEmo">✍️</div>
+                                <div class="live-hint" id="liveHint" style="margin-bottom:0.75rem;">Start writing to see analysis</div>
+                                <div id="allScoresBars" style="width:100%;display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Recent Entries</div>
+                        <div id="entriesList"></div>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS -->
+                <div id="analyticsPage" class="page">
+                    <div class="page-header">
+                        <h1>Analytics</h1>
+                        <p>Visualise your emotional patterns over time</p>
+                    </div>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-title">Emotion Distribution</div><canvas id="emotionChart"></canvas></div>
+                        <div class="card">
+                            <div class="card-title">Polarity Scatter</div><canvas id="scatterChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Long-term Mood Trend</div><canvas id="longChart"></canvas></div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div id="settingsPage" class="page">
+                    <div class="page-header">
+                        <h1>Settings</h1>
+                    </div>
+                    <div class="card" style="margin-bottom:1.5rem;">
+                        <div class="card-title">Profile</div>
+                        <div id="profileBox"></div>
+                    </div>
+                    <div class="card" style="margin-bottom:1.5rem;">
+                        <div class="card-title">Domain Adaptation</div>
+                        <p style="font-size:0.85rem;color:var(--text2);margin-bottom:1rem;">Fine-tunes the AI on your own journal entries for better accuracy on your writing style.</p>
+                        <button class="save-btn" id="adaptBtn" onclick="triggerAdapt()">Run Domain Adaptation</button>
+                        <div class="adapt-log hidden" id="adaptLog"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Data</div>
+                        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                            <button class="save-btn" onclick="exportData()">📥 Export CSV</button>
+                            <button class="save-btn" style="background:linear-gradient(135deg,#ef5350,#e53935);" onclick="clearAllData()">🗑️ Clear My Data</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /main -->
+        </div>
+        <!-- /shell -->
+    </div>
+    <!-- /appWrap -->
+
+    <script>
+        /* ══ STATE ══════════════════════════════════════════════════════════ */
+        const API = ''; // same origin
+        let TOKEN = localStorage.getItem('mt_token') || null;
+        let USERNAME = localStorage.getItem('mt_user') || null;
+        let _entries = [];
+        let _stats = {};
+        let moodChartInst, emotionChartInst, scatterChartInst, longChartInst;
+        let _adaptPoll = null;
+
+        /* ══ API HELPERS ════════════════════════════════════════════════════ */
+        async function api(method, path, body) {
+            const opts = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+            if (TOKEN) opts.headers['Authorization'] = 'Bearer ' + TOKEN;
+            if (body) opts.body = JSON.stringify(body);
+            const r = await fetch(API + path, opts);
+            return r.json();
+        }
+
+        /* ══ AUTH ═══════════════════════════════════════════════════════════ */
+        function switchAuthTab(t) {
+            document.querySelectorAll('.auth-tab').forEach((b, i) => b.classList.toggle('active', (t === 'login' && i === 0) || (t !== 'login' && i === 1)));
+            document.getElementById('loginTab').classList.toggle('hidden', t !== 'login');
+            document.getElementById('signupTab').classList.toggle('hidden', t === 'login');
+            showAuthMsg('', '');
+        }
+
+        function showAuthMsg(txt, type) {
+            const el = document.getElementById('authMsg');
+            el.textContent = txt;
+            el.className = 'msg ' + type;
+        }
+
+        async function doLogin() {
+            const u = document.getElementById('loginUser').value.trim();
+            const p = document.getElementById('loginPass').value;
+            if (!u || !p) return showAuthMsg('Fill in all fields', 'error');
+            showAuthMsg('Signing in…', '');
+            try {
+                const d = await api('POST', '/api/login', {
+                    username: u,
+                    password: p
+                });
+                if (d.error) return showAuthMsg(d.error, 'error');
+                TOKEN = d.token;
+                USERNAME = d.username;
+                localStorage.setItem('mt_token', TOKEN);
+                localStorage.setItem('mt_user', USERNAME);
+                initApp();
+            } catch (e) {
+                showAuthMsg('Cannot reach server — is Flask running?', 'error');
+            }
+        }
+
+        async function doSignup() {
+            const u = document.getElementById('suUser').value.trim();
+            const em = document.getElementById('suEmail').value.trim();
+            const p = document.getElementById('suPass').value;
+            const c = document.getElementById('suConfirm').value;
+            if (!u || !p) return showAuthMsg('Fill in all fields', 'error');
+            if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return showAuthMsg('Enter a valid email address', 'error');
+            if (p !== c) return showAuthMsg('Passwords do not match', 'error');
+            if (p.length < 6) return showAuthMsg('Password must be 6+ chars', 'error');
+            const d = await api('POST', '/api/signup', {
+                username: u,
+                password: p,
+                email: em || undefined
+            });
+            if (d.error) return showAuthMsg(d.error, 'error');
+            TOKEN = d.token;
+            USERNAME = d.username;
+            localStorage.setItem('mt_token', TOKEN);
+            localStorage.setItem('mt_user', USERNAME);
+            initApp();
+        }
+
+        function doLogout() {
+            TOKEN = USERNAME = null;
+            localStorage.removeItem('mt_token');
+            localStorage.removeItem('mt_user');
+            document.getElementById('authWrap').style.display = 'flex';
+            document.getElementById('appWrap').style.display = 'none';
+        }
+
+        /* ══ INIT ═══════════════════════════════════════════════════════════ */
+        async function initApp() {
+            document.getElementById('authWrap').style.display = 'none';
+            document.getElementById('appWrap').style.display = 'block';
+            document.getElementById('userNameLabel').textContent = USERNAME;
+            document.getElementById('userAvatar').textContent = USERNAME[0].toUpperCase();
+            await loadAll();
+            renderHome();
+        }
+
+        async function loadAll() {
+            const [entries, stats] = await Promise.all([
+                api('GET', '/api/entries'),
+                api('GET', '/api/stats'),
+            ]);
+            _entries = Array.isArray(entries) ? entries : [];
+            _stats = stats || {};
+        }
+
+        /* ══ NAVIGATION ═════════════════════════════════════════════════════ */
+        function goTo(page, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(page + 'Page').classList.add('active');
+            if (btn) btn.classList.add('active');
+            const renderers = {
+                home: renderHome,
+                journal: renderJournal,
+                analytics: renderAnalytics,
+                settings: renderSettings
+            };
+            if (renderers[page]) renderers[page]();
+        }
+
+        /* ══ HOME ═══════════════════════════════════════════════════════════ */
+        function renderHome() {
+            const s = _stats;
+            document.getElementById('mTotal').textContent = s.total || 0;
+            document.getElementById('mAvg').textContent = (s.avg_polarity || 0).toFixed(2);
+
+            // top emotion
+            const ec = s.emotion_counts || {};
+            const top = Object.keys(ec).sort((a, b) => ec[b] - ec[a])[0] || '—';
+            document.getElementById('mTop').textContent = top.charAt(0).toUpperCase() + top.slice(1);
+
+            // model badge
+            const mv = s.model_version || 'base';
+            document.getElementById('mModel').innerHTML = `<span class="model-badge model-${mv}">${mv==='adapted'?'✓ Adapted':'Base'}</span>`;
+
+            // anomaly
+            document.getElementById('anomalyBanner').classList.toggle('hidden', !s.anomaly);
+
+            // subtitle
+            document.getElementById('homeSubtitle').textContent =
+                `${s.trend_direction==='improving'?'📈 Mood improving':'📊 Track your mental wellness'} — ${s.total||0} entries logged`;
+
+            // wellness ring
+            const pct = s.wellness || 50;
+            const circumference = 2 * Math.PI * 54; // 339.3
+            const offset = circumference - (pct / 100) * circumference;
+            const ring = document.getElementById('ringFill');
+            ring.style.strokeDashoffset = offset;
+            ring.style.stroke = pct >= 60 ? 'var(--joy)' : pct >= 40 ? 'var(--accent)' : 'var(--anger)';
+            document.getElementById('ringVal').textContent = pct;
+            document.getElementById('ringPct').textContent = '/ 100';
+
+            const td = s.trend_direction || 'stable';
+            const badge = document.getElementById('trendBadge');
+            badge.className = `trend-badge trend-${td}`;
+            badge.textContent = td === 'improving' ? '📈 Improving' : td === 'declining' ? '📉 Declining' : '➡️ Stable';
+
+            // mood chart
+            const trend = s.trend || [];
+            const ctx = document.getElementById('moodChart');
+            if (moodChartInst) moodChartInst.destroy();
+            if (trend.length > 0) {
+                moodChartInst = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: trend.map(e => new Date(e.date).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short'
+                        })),
+                        datasets: [{
+                            label: 'Polarity',
+                            data: trend.map(e => e.polarity),
+                            borderColor: '#7c6dfa',
+                            backgroundColor: 'rgba(124,109,250,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#7c6dfa'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: -1,
+                                max: 1,
+                                grid: {
+                                    color: 'rgba(255,255,255,0.05)'
+                                },
+                                ticks: {
+                                    color: '#8890b0',
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#8890b0',
+                                    font: {
+                                        size: 10
+                                    },
+                                    maxTicksLimit: 8
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // tips
+            const topEmo = Object.keys(ec).sort((a, b) => ec[b] - ec[a])[0] || 'neutral';
+            const tips = {
+                joy: ['🎉 Share your positivity with others', '📝 Document what made you happy', '🎯 Set a new personal goal'],
+                love: ['💌 Reach out to someone you care about', '🌸 Practice gratitude journaling', '☕ Plan quality time together'],
+                sadness: ['🤗 Reach out to a trusted friend', '🌞 Step outside for 10 minutes', '💝 Practice self-compassion'],
+                anger: ['🫁 Try 4-7-8 breathing', '🚶 A walk helps regulate cortisol', '📝 Write out what frustrated you'],
+                fear: ['🧘 Ground yourself: 5 things you can see', '📱 Limit doom-scrolling today', '💪 Name the fear to shrink it'],
+                surprise: ['📖 Reflect on what surprised you', '🔄 Embrace change as growth', '🗣️ Talk it through with someone'],
+            };
+            const t = tips[topEmo] || tips.joy;
+            document.getElementById('tipsBox').innerHTML = t.map(tip => `
+    <div class="tip-item"><span class="tip-icon">${tip[0]}</span>${tip.slice(2)}</div>
+  `).join('');
+        }
+
+        /* ══ JOURNAL ════════════════════════════════════════════════════════ */
+        const LIFE_EVENTS = [{
+            id: 'interview',
+            icon: '💼',
+            label: 'Interview'
+        }, {
+            id: 'exam',
+            icon: '📝',
+            label: 'Exam/Test'
+        }, {
+            id: 'presentation',
+            icon: '📊',
+            label: 'Presentation'
+        }, {
+            id: 'breakup',
+            icon: '💔',
+            label: 'Breakup'
+        }, {
+            id: 'argument',
+            icon: '😤',
+            label: 'Argument'
+        }, {
+            id: 'travel',
+            icon: '✈️',
+            label: 'Travel'
+        }, {
+            id: 'celebration',
+            icon: '🎉',
+            label: 'Celebration'
+        }, {
+            id: 'sick',
+            icon: '🤒',
+            label: 'Feeling Sick'
+        }, {
+            id: 'deadline',
+            icon: '⏰',
+            label: 'Deadline'
+        }, {
+            id: 'exercise',
+            icon: '🏃',
+            label: 'Exercise'
+        }, {
+            id: 'social',
+            icon: '👥',
+            label: 'Social Event'
+        }, {
+            id: 'bad_sleep',
+            icon: '😴',
+            label: 'Bad Sleep'
+        }, ];
+        let _liveTimer = null;
+
+        function renderJournal() {
+            const mv = _stats.model_version || 'base';
+            const badge = document.getElementById('journalModelBadge');
+            badge.className = `model-badge model-${mv}`;
+            badge.textContent = mv === 'adapted' ? '✓ Adapted Model' : 'Base Model';
+            // Build event chips
+            const grid = document.getElementById('eventsGrid');
+            if (grid && !grid.dataset.built) {
+                grid.dataset.built = '1';
+                grid.innerHTML = LIFE_EVENTS.map(ev => `
+                <label class="event-chip" id="chip_${ev.id}" onclick="toggleChip('${ev.id}')">
+                    <input type="checkbox" id="ev_${ev.id}">
+                    <span class="chip-icon">${ev.icon}</span>${ev.label}
+                </label>`).join('');
+            }
+            renderEntries();
+            document.getElementById('journalText').addEventListener('input', onJournalInput);
+        }
+
+        function toggleChip(id) {
+            const cb = document.getElementById('ev_' + id);
+            cb.checked = !cb.checked;
+            document.getElementById('chip_' + id).classList.toggle('checked', cb.checked);
+        }
+
+        function getSelectedEvents() {
+            return LIFE_EVENTS.filter(ev => {
+                const cb = document.getElementById('ev_' + ev.id);
+                return cb && cb.checked;
+            }).map(ev => ev.id);
+        }
+
+        function onJournalInput(e) {
+            clearTimeout(_liveTimer);
+            const text = e.target.value.trim();
+            if (!text) {
+                document.getElementById('liveEmo').textContent = '✍️';
+                document.getElementById('liveHint').textContent = 'Start writing to see analysis';
+                document.getElementById('allScoresBars').style.display = 'none';
+                document.getElementById('allScoresBars').innerHTML = '';
+                return;
+            }
+            document.getElementById('liveHint').textContent = 'Analysing…';
+            _liveTimer = setTimeout(() => liveClassify(text), 600);
+        }
+
+        async function liveClassify(text) {
+            try {
+                const d = await api('POST', '/api/classify', {
+                    text
+                });
+                if (d.error) return;
+                const emojis = {
+                    joy: '😊',
+                    love: '💗',
+                    sadness: '😔',
+                    anger: '😤',
+                    fear: '😰',
+                    surprise: '😲'
+                };
+                const emoOrder = ['joy', 'love', 'sadness', 'anger', 'fear', 'surprise'];
+                const scores = d.scores || {};
+
+                // top emotion header
+                document.getElementById('liveEmo').textContent =
+                    (emojis[d.emotion] || '🎭') + ' ' + d.emotion.charAt(0).toUpperCase() + d.emotion.slice(1);
+                document.getElementById('liveHint').textContent =
+                    `Polarity: ${d.polarity >= 0 ? '+' : ''}${d.polarity.toFixed(3)}`;
+
+                // sort by score descending, show all
+                const sorted = emoOrder
+                    .map(e => ({
+                        e,
+                        v: scores[e] || 0
+                    }))
+                    .sort((a, b) => b.v - a.v);
+
+                const barsEl = document.getElementById('allScoresBars');
+                barsEl.style.display = 'block';
+                barsEl.innerHTML = sorted.map(({
+                    e,
+                    v
+                }) => {
+                    const pct = Math.round(v * 100);
+                    const isTop = e === d.emotion;
+                    return `<div class="score-row${isTop ? ' top-emo' : ''}">
+                        <span class="score-label"><span>${emojis[e] || '🎭'}</span><span>${e.charAt(0).toUpperCase()+e.slice(1)}</span></span>
+                        <div class="score-track">
+                            <div class="score-fill" style="width:${pct}%;background:${getEmoColor(e)};${isTop?'':'opacity:0.55;'}"></div>
+                        </div>
+                        <span class="score-pct">${pct}%</span>
+                    </div>`;
+                }).join('');
+            } catch (err) {}
+        }
+
+        async function saveEntry() {
+            const text = document.getElementById('journalText').value.trim();
+            if (!text) return showJMsg('Write something first', 'error');
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Saving…';
+            try {
+                const selectedEvents = getSelectedEvents();
+                const d = await api('POST', '/api/entries', {
+                    text,
+                    intensity: 5,
+                    events: selectedEvents
+                });
+                if (d.error) {
+                    showJMsg(d.error, 'error');
+                } else {
+                    const evLabel = selectedEvents.length ? ` · Events: ${selectedEvents.join(', ')}` : '';
+                    showJMsg('Saved! Detected: ' + d.emotion + evLabel, 'success');
+                    document.getElementById('journalText').value = '';
+                    document.getElementById('liveEmo').textContent = '✍️';
+                    document.getElementById('liveHint').textContent = 'Start writing to see analysis';
+                    document.getElementById('allScoresBars').style.display = 'none';
+                    document.getElementById('allScoresBars').innerHTML = '';
+                    // reset chips
+                    LIFE_EVENTS.forEach(ev => {
+                        const cb = document.getElementById('ev_' + ev.id);
+                        if (cb) cb.checked = false;
+                        const chip = document.getElementById('chip_' + ev.id);
+                        if (chip) chip.classList.remove('checked');
+                    });
+                    await loadAll();
+                    renderEntries();
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Entry';
+            }
+        }
+
+        function renderEntries() {
+            const list = document.getElementById('entriesList');
+            if (!_entries.length) {
+                list.innerHTML = '<div class="empty-state">No entries yet. Write your first one above.</div>';
+                return;
+            }
+            list.innerHTML = _entries.slice(0, 15).map(e => {
+                        const evTags = (e.events && e.events.length) ?
+                            `<div style="margin-top:0.45rem;display:flex;flex-wrap:wrap;gap:0.3rem;">
+                        ${e.events.map(ev => {
+                            const found = LIFE_EVENTS.find(x => x.id === ev);
+                            return `<span style="background:rgba(124,109,250,0.12);color:var(--accent);border-radius:6px;padding:0.15rem 0.5rem;font-size:0.72rem;font-weight:600;">${found ? found.icon+' '+found.label : ev}</span>`;
+                        }).join('')}
+                       </div>` : '';
+                return `
+    <div class="entry-card">
+      <div class="entry-meta">
+        <span class="entry-date">${new Date(e.date).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span class="emo-pill e-${e.emotion}">${e.emotion}</span>
+          <button class="delete-btn" onclick="deleteEntry(${e.id})">✕</button>
+        </div>
+      </div>
+      <div class="entry-text">${e.text.length>200?e.text.slice(0,200)+'…':e.text}</div>
+      ${evTags}
+      <div style="margin-top:0.5rem;font-size:0.78rem;color:var(--text2)">Polarity: ${e.polarity.toFixed(3)}</div>
+    </div>
+  `;}).join('');
+        }
+
+        async function deleteEntry(id) {
+            await api('DELETE', `/api/entries/${id}`);
+            await loadAll();
+            renderEntries();
+        }
+
+        function showJMsg(txt, type) {
+            const el = document.getElementById('journalMsg');
+            el.textContent = txt;
+            el.className = 'msg ' + type;
+            setTimeout(() => el.className = 'msg', 3000);
+        }
+
+        /* ══ ANALYTICS ══════════════════════════════════════════════════════ */
+        function renderAnalytics() {
+            const ec = _stats.emotion_counts || {};
+            const trend = _stats.trend || [];
+
+            // emotion doughnut
+            const ctx1 = document.getElementById('emotionChart');
+            if (emotionChartInst) emotionChartInst.destroy();
+            emotionChartInst = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(ec).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
+                    datasets: [{
+                        data: Object.values(ec),
+                        backgroundColor: Object.keys(ec).map(getEmoColor),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#8890b0',
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // scatter
+            const ctx2 = document.getElementById('scatterChart');
+            if (scatterChartInst) scatterChartInst.destroy();
+            scatterChartInst = new Chart(ctx2, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Entries',
+                        data: _entries.map((e, i) => ({
+                            x: i,
+                            y: e.polarity
+                        })),
+                        backgroundColor: _entries.map(e => getEmoColor(e.emotion)),
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: '#8890b0',
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            min: -1,
+                            max: 1,
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            ticks: {
+                                color: '#8890b0',
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // long term line
+            const ctx3 = document.getElementById('longChart');
+            if (longChartInst) longChartInst.destroy();
+            if (trend.length > 0) {
+                longChartInst = new Chart(ctx3, {
+                    type: 'line',
+                    data: {
+                        labels: trend.map(e => new Date(e.date).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short'
+                        })),
+                        datasets: [{
+                            label: 'Polarity',
+                            data: trend.map(e => e.polarity),
+                            borderColor: '#4fc3f7',
+                            backgroundColor: 'rgba(79,195,247,0.08)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#8890b0'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: -1,
+                                max: 1,
+                                grid: {
+                                    color: 'rgba(255,255,255,0.05)'
+                                },
+                                ticks: {
+                                    color: '#8890b0',
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#8890b0',
+                                    font: {
+                                        size: 10
+                                    },
+                                    maxTicksLimit: 10
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        /* ══ SETTINGS ═══════════════════════════════════════════════════════ */
+        async function renderSettings() {
+            const d = await api('GET', '/api/me');
+            const days = _entries.length > 0 ? Math.floor((Date.now() - new Date(_entries[_entries.length - 1].date)) / (86400000)) : 0;
+            document.getElementById('profileBox').innerHTML = `
+    <div class="profile-row"><span class="label">Username</span><span class="val">${d.username||USERNAME}</span></div>
+    <div class="profile-row"><span class="label">Member since</span><span class="val">${new Date(d.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</span></div>
+    <div class="profile-row"><span class="label">Total entries</span><span class="val">${d.entry_count||0}</span></div>
+    <div class="profile-row"><span class="label">Model version</span><span class="val"><span class="model-badge model-${_stats.model_version||'base'}">${_stats.model_version==='adapted'?'✓ Adapted':'Base'}</span></span></div>
+  `;
+        }
+
+        async function triggerAdapt() {
+            const btn = document.getElementById('adaptBtn');
+            const log = document.getElementById('adaptLog');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>Starting…';
+            log.classList.remove('hidden');
+            log.innerHTML = '<p>→ Sending entries to training engine…</p>';
+
+            try {
+                const d = await api('POST', '/api/adapt', {
+                    epochs: 3,
+                    min_samples: 6,
+                    lr: 2e-5
+                });
+                if (d.error) {
+                    log.innerHTML += `<p style="color:#ef9a9a;">✗ ${d.error}</p>`;
+                    btn.disabled = false;
+                    btn.textContent = 'Run Domain Adaptation';
+                    return;
+                }
+                log.innerHTML += `<p>→ ${d.samples_used} entries loaded, training started…</p>`;
+                pollAdaptStatus(btn, log);
+            } catch (e) {
+                log.innerHTML += '<p style="color:#ef9a9a;">✗ Server unreachable</p>';
+                btn.disabled = false;
+                btn.textContent = 'Run Domain Adaptation';
+            }
+        }
+
+        function pollAdaptStatus(btn, log) {
+            if (_adaptPoll) clearInterval(_adaptPoll);
+            _adaptPoll = setInterval(async() => {
+                const s = await api('GET', '/api/adapt/status');
+                log.innerHTML = s.log.map(l => `<p>✓ ${l}</p>`).join('') || '<p>Training…</p>';
+                if (s.done) {
+                    clearInterval(_adaptPoll);
+                    log.innerHTML += '<p style="color:#81c784;">✓ Adaptation complete! Model hot-swapped.</p>';
+                    btn.disabled = false;
+                    btn.textContent = 'Run Again';
+                    await loadAll();
+                    renderSettings();
+                }
+                if (s.error) {
+                    clearInterval(_adaptPoll);
+                    log.innerHTML += `<p style="color:#ef9a9a;">✗ ${s.error}</p>`;
+                    btn.disabled = false;
+                    btn.textContent = 'Run Domain Adaptation';
+                }
+            }, 3000);
+        }
+
+        function exportData() {
+            const csv = 'Date,Emotion,Polarity,Intensity,Text\n' + _entries.map(e => `"${e.date}","${e.emotion}","${e.polarity}","${e.intensity}","${e.text.replace(/"/g,'""')}"`).join('\n');
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = `mindtrack_${USERNAME}_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        async function clearAllData() {
+            if (!confirm('Delete all your journal entries? This cannot be undone.')) return;
+            for (const e of _entries) await api('DELETE', `/api/entries/${e.id}`);
+            await loadAll();
+            renderEntries();
+        }
+
+        /* ══ UTILS ══════════════════════════════════════════════════════════ */
+        function getEmoColor(e) {
+            return {
+                joy: '#66bb6a',
+                love: '#f06292',
+                sadness: '#5c7bff',
+                anger: '#ef5350',
+                fear: '#ffa726',
+                surprise: '#ab47bc'
+            }[e] || '#7c6dfa';
+        }
+
+        /* ══ BOOT ═══════════════════════════════════════════════════════════ */
+        if (TOKEN) {
+            initApp();
+        }
+    </script>
+</body>
+
+</html>
